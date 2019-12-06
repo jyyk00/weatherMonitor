@@ -1,20 +1,4 @@
-window.onload = function() {
-	
-	var ipUrl = "https://ipinfo.io/json";				
-	var appid = "&appid=611cbaabb5e7fb240aad688b17efbc18";
-	var location = document.getElementById("location");	
-	var currentDate = new Date();
-	var dayNight = "day";	
 
-	
-	var dateElem = document.getElementById("date");
-	dateElem.innerHTML = currentDate.toDateString();
-
-	
-	httpReqIpAsync(ipUrl);							
-				
-	
-}
 $(document).ready(function () {
     setInterval(function () {
         $("#dateDisplay").text(moment().format("MMMM DD, YYYY"))
