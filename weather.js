@@ -1,79 +1,144 @@
-window.onload = function() {
-	//variables
-	var ipUrl = "https://ipinfo.io/json";				
-	var appid = "appid=8e1880f460a20463565be25bc573bdc6";
-	var location = document.getElementById("location");	
-	var currentDate = new Date();
-	var dayNight = "day";	
+$(document).ready(function () {
+    setInterval(function () {
+        $("#dateDisplay").text(moment().format("MMMM DD, YYYY"))
+    }, 1000);
+    cityList = JSON.parse(localStorage.getItem("city"));
+    if (cityList === null) {
+        cityList = [];
+    }
+    for (var i = 0; i < 5; i++) {
+        var cityRow = $("<tr>");
+        var cityColumn = $("<td>")
+        var cityLink = $("<button>")
+        cityLink.attr("class", "btn btn-light");
+        cityLink.attr("city-name", cityList[i]);
+        cityLink.text(cityList[i]);
+        $(cityColumn).append(cityLink);
+        $(cityRow).append(cityColumn);
+        $("tbody").append(cityRow);
+    };
+    $("#submit").on("click", function () {
+        var city = $("#city").val().trim();
+        var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" +
+            city + "&appid=611cbaabb5e7fb240aad688b17efbc18";
 
-	//setting the date
-	var dateElem = document.getElementById("date");
-	dateElem.innerHTML = currentDate.toDateString();
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        })
+            .then(function (response) {
+                console.log(response);
+                lowTempFaren = Math.floor(((response.main.temp_min - 273.15) * 1.8) + 32);
+                highTempFaren = Math.floor(((response.main.temp_min - 273.15) * 1.8) + 32);
+                $("#lowDiv").text("Low of: " + lowTempFaren + "°F");
+                $("#highDiv").text("High of: " + highTempFaren + "°F");
+                $("#humidity").text("Humidity: " + response.main.humidity + "%");
+                $("#windSpeed").text("Wind Speed: " + response.wind.speed + " MPH");
+                $("#description").text("Today's Weather: " + response.weather[0].description);
+                weather_icon = response.weather[0].icon + ".png"
+                $("#cityHeader").text(response.name);
+                var cityRow = $("<tr>");
+                var cityColumn = $("<td>");
+                var cityLink = $("<button>");
+                cityLink.text(response.name);
+                cityLink.attr("class", "btn btn-light");
+                cityLink.attr("id", "newBtn");
+                cityLink.attr("city-name", response.name);
+                $(cityColumn).append(cityLink);
+                $(cityRow).append(cityColumn);
+                $("tbody").prepend(cityRow);
+                cityList = JSON.parse(localStorage.getItem("city"));
+                if (cityList === null) {
+                    cityList = [];
+                }
+                cityList.push(response.name);
+                localStorage.setItem("city", JSON.stringify(cityList));
+            });
+        var queryURLForecast = "https://api.openweathermap.org/data/2.5/forecast?q=" +
+            city + "&appid=611cbaabb5e7fb240aad688b17efbc18";
 
-	//calling ipinfo.io/json function
-	httpReqIpAsync(ipUrl);							
+        $.ajax({
+            url: queryURLForecast,
+            method: "GET"
+        })
+            .then(function (response) {
+                console.log(response);
+                localStorage.setItem("forecast", JSON.stringify(response));
+                result = JSON.parse(localStorage.getItem("forecast"));
+                newDays = [4, 12, 20, 28, 36]
+                for (var i = 0; i < newDays.length; i++) {
+                    var dayTemp = result.list[i].main.temp;
+                    var dayTempFaren = Math.floor(((dayTemp - 273.15) * 1.8) + 32);
+                    var dayDate = result.list[i].dt;
+                    var dayHumidity = result.list[i].main.humidity;
+                    var dayWindSpeed = result.list[i].wind.speed;
+                    var dayWeather = result.list[i].weather[0].description;
+                    var dayWeatherId = result.list[i].weather[0].main;
+                    var dayIcon = result.list[i].weather[0].icon
+                    $("#day" + newDays[i] + "_date").text(moment.unix(dayDate).format("MMMM Do"));
+                    $("#day" + newDays[i] + "_date").attr("class", "date");
+                    $("#day" + newDays[i] + "_temp").text(dayTempFaren + "°F");
+                    $("#day" + newDays[i] + "_humidity").text(dayHumidity + "% Humidity");
+                    $("#day" + newDays[i] + "_wind").attr("class", "windText");
+                    $("#day" + newDays[i] + "_wind").text("Wind: " + dayWindSpeed + " MPH");
+                    $("#icon" + newDays[i]).attr("src", "http://openweathermap.org/img/wn/" + dayIcon + ".png");
+                };
+                $("#weatherInfo").attr("style", "display: block");
+            });
+    });
+    function buttonWeatherDisplay() {
+        console.log($(this).attr("city-name"));
+        var city2 = $(this).attr("city-name");
+        var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" +
+            city2 + "&appid=611cbaabb5e7fb240aad688b17efbc18";
 
-	//request to ipinfo.io/json
-	function httpReqIpAsync(url, callback) {
-		var httpReqIp = new XMLHttpRequest();
-		httpReqIp.open("GET", url, true)
-		httpReqIp.onreadystatechange = function() {
-			if(httpReqIp.readyState == 4 && httpReqIp.status == 200) {
-				var jsonIp = JSON.parse(httpReqIp.responseText)
-				var ip = jsonIp.ip;
-				var city = jsonIp.city;
-				var country = jsonIp.country;
-				location.innerHTML = `${city}, ${country}`;
-				var lat = jsonIp.loc.split(",")[0];
-				var lon = jsonIp.loc.split(",")[1];
-				console.log(lat+" "+lon)
-				var weatherApi = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&${appid}`;
-				//calling openweathermap api function
-				httpReqWeatherAsync(weatherApi);
-			}
-		}
-		httpReqIp.send();				
-	}
-	
-	//request to openweathermap.com json
-	function httpReqWeatherAsync(url, callback) {
-		var httpReqWeather = new XMLHttpRequest();
-		httpReqWeather.open("GET", url, true);
-		httpReqWeather.onreadystatechange = function() {
-			if(httpReqWeather.readyState == 4 && httpReqWeather.status == 200) {
-				var jsonWeather = JSON.parse(httpReqWeather.responseText);
-				console.log(jsonWeather)
-				var weatherDesc = jsonWeather.weather[0].description;
-				var id = jsonWeather.weather[0].id;
-				var icon = `<i class="wi wi-owm-${id}"></i>`
-				var temperature = jsonWeather.main.temp;
-				var tempFaren = Math.round(1.8 * (temperature - 273) + 32)
-				// console.log(tempFaren)
-				var humidity = jsonWeather.main.humidity;
-				var windSpeed = jsonWeather.wind.speed; 
-				//converting visibility to miles 
-				var visibility = Math.round(jsonWeather.visibility / 1000);
-				// console.log(visibility)
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        })
+            .then(function (response) {
+                console.log(response);
+                lowTempFaren = Math.floor(((response.main.temp_min - 273.15) * 1.8) + 32);
+                highTempFaren = Math.floor(((response.main.temp_min - 273.15) * 1.8) + 32);
+                $("#lowDiv").text("Low of: " + lowTempFaren + "°F");
+                $("#highDiv").text("High of: " + highTempFaren + "°F");
+                $("#humidity").text("Humidity: " + response.main.humidity + "%");
+                $("#windSpeed").text("Wind Speed: " + response.wind.speed + " MPH");
+                $("#description").text("Today's Weather: " + response.weather[0].description);
+                weather_icon = response.weather[0].icon + ".png"
+                $("#cityHeader").text(response.name);
+            });
+        var queryURLForecast2 = "https://api.openweathermap.org/data/2.5/forecast?q=" +
+            city2 + "&appid=611cbaabb5e7fb240aad688b17efbc18";
 
-				//find whether is day or night
-				var sunSet = jsonWeather.sys.sunset;
-				//sunset is 10 digits and currentDate 13 so div by 1000
-				var timeNow = Math.round(currentDate / 1000);
-				console.log(timeNow + "<" + sunSet +" = "+(timeNow < sunSet))
-				dayNight = (timeNow < sunSet) ? "day" : "night";
-				//insert into html page
-				var description = document.getElementById("description");
-				description.innerHTML = `<i id="icon-desc" class="wi wi-owm-${dayNight}-${id}"></i><p>${weatherDesc}</p>`;
-				var tempElement = document.getElementById("temperature");
-				tempElement.innerHTML = `${tempFaren}<i id="icon-thermometer" class="wi wi-thermometer"></i>`	;
-				var humidityElem = document.getElementById("humidity");
-				humidityElem.innerHTML = `${humidity}%`;
-				var windElem = document.getElementById("wind");
-				windElem.innerHTML = `${windSpeed}m/h`;
-				var visibilityElem = document.getElementById("visibility");
-				visibilityElem.innerHTML = `${visibility} miles`;
-			}
-		}
-		httpReqWeather.send();
-	}							
-}
+        $.ajax({
+            url: queryURLForecast2,
+            method: "GET"
+        })
+            .then(function (response) {
+                console.log(response);
+                localStorage.setItem("forecast", JSON.stringify(response));
+                result = JSON.parse(localStorage.getItem("forecast"));
+                newDays = [4, 12, 20, 28, 36]
+                for (var i = 0; i < newDays.length; i++) {
+                    var dayTemp = result.list[i].main.temp;
+                    var dayTempFaren = Math.floor(((dayTemp - 273.15) * 1.8) + 32);
+                    var dayDate = result.list[i].dt;
+                    var dayHumidity = result.list[i].main.humidity;
+                    var dayWindSpeed = result.list[i].wind.speed;
+                    var dayWeather = result.list[i].weather[0].description;
+                    var dayWeatherId = result.list[i].weather[0].main;
+                    var dayIcon = result.list[i].weather[0].icon
+                    $("#day" + newDays[i] + "_date").text(moment.unix(dayDate).format("MMMM Do"));
+                    $("#day" + newDays[i] + "_date").attr("class", "date");
+                    $("#day" + newDays[i] + "_temp").text(dayTempFaren + "°F");
+                    $("#day" + newDays[i] + "_humidity").text(dayHumidity + "% Humidity");
+                    $("#day" + newDays[i] + "_wind").attr("class", "windText");
+                    $("#day" + newDays[i] + "_wind").text("Wind: " + dayWindSpeed + " MPH");
+                    $("#icon" + newDays[i]).attr("src", "http://openweathermap.org/img/wn/" + dayIcon + ".png");
+                };
+                $("#weatherInfo").attr("style", "display: block");
+            });
+    };
+    $(".btn").on("click", buttonWeatherDisplay);
+});

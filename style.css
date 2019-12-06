@@ -1,0 +1,109 @@
+
+body {
+    background-image: url("./assets/weatherback.jpg");
+}
+.col-2{
+    float: left;
+    width: 100%;
+    text-align: center;
+    border-radius: 25px;
+    background: whitesmoke;
+    border: 2px solid: grey;
+    margin-left: 2px;
+    font-family: monospace;
+}
+#cityHeader{
+    font-weight: lighter;
+}
+#heading{
+    text-align: center;
+    height: 150px;
+    font-family: monospace;
+    font-size: large;
+}
+#fiveDayForecast{
+    margin-left: 25%;
+    font-family: monospace;
+}
+#searches{
+    float: right;
+    background: whitesmoke;
+    font-family: monospace;
+}
+.container{
+    margin: 0%;
+    padding: 0px;
+}
+.date{
+    color:gray;
+    font-weight: bolder;
+    font-size: 14px;
+    padding-top: 15px;
+    font-family: monospace;
+}
+.windText{
+    font-size: 14px;
+    padding-bottom: 15px;
+    font-family: monospace;
+}
+#fiveDayForecast{
+    margin-bottom: 25px;
+    font-family: monospace;
+    color: yellow;
+}
+#weatherInfo{
+    display: none;
+    font-family: monospace;
+    color: yellow;
+    text-align: right;
+    font-size: large;
+}
+.btn-light{
+    width: 100%;
+}
+#todaysWeather.row{
+    text-align: center;
+}
+#inline{
+    margin-left: 25%;
+}
+@media (min-width: 576px) {
+.col-sm-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+}
+#city{
+    width:100%;
+    font-family: monospace;
+}
+#submit{
+    width: 100%;
+    font-family: monospace;
+}
+#recent{
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+    background: #E2E3E6;
+    font-family: monospace;
+}
+.hero {
+    position: absolute;
+    min-height: 100vh;
+    min-width: 100vw;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(31, 34, 118, 0.5);
+    z-index: -5;
+}
+
+/* navbar */
+.navbar {
+	background-color: rgb(69, 106, 171);
+}
+
+.navbar a {
+	color: white;
+	font-size: 25px;
+}
